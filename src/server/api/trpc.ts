@@ -23,7 +23,6 @@
  */
 import { initTRPC, TRPCError } from "@trpc/server";
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
-import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { type Session } from "next-auth";
 import superjson from "superjson";
@@ -31,7 +30,7 @@ import type { OpenApiMeta } from "trpc-openapi";
 import { ZodError } from "zod";
 
 import { getServerAuthSession } from "@/server/auth";
-import { prisma } from "@/server/db";
+import { db } from "@/server/db";
 
 type CreateContextOptions = {
 	session: Session | null;
@@ -52,7 +51,7 @@ type CreateContextOptions = {
 const createInnerTRPCContext = (opts: CreateContextOptions) => {
 	return {
 		session: opts.session,
-		prisma,
+		query: db,
 		req: opts.req,
 		res: opts.res,
 	};
@@ -65,20 +64,23 @@ const createInnerTRPCContext = (opts: CreateContextOptions) => {
  * @see https://trpc.io/docs/context
  */
 export const createTRPCContext = async (opts: CreateNextContextOptions) => {
+	// connect to db (if needed)
+	if (!db.isConnected) await db.connect();
+
 	const { req, res } = opts;
 
 	// Get the session from the server using the getServerSession wrapper function
-	let session = await getServerAuthSession({ req, res });
+	const session = await getServerAuthSession({ req, res });
 
 	// console.log("X-API-Key :>> ", req.headers["x-api-key"]);
-	if (!session && req.headers["x-api-key"]) {
-		const apiKey = req.headers["x-api-key"].toString();
+	// if (!session && req.headers["x-api-key"]) {
+	// 	const apiKey = req.headers["x-api-key"].toString();
 
-		const subscription = (await prisma.subscription.findFirst({ where: { key: apiKey } })) || undefined;
-		const workspace = (await prisma.workspace.findFirst({ where: { subscriptionId: subscription?.id } })) || undefined;
-		const user = subscription?.userId ? await prisma.user.findFirst({ where: { id: subscription?.userId } }) : undefined;
-		if (user) session = { user: { ...user, subscription, workspace }, expires: dayjs("2050-01-01").toISOString() };
-	}
+	// 	const subscription = (await db.subscription.findFirst({ where: { key: apiKey } })) || undefined;
+	// 	const workspace = (await db.workspace.findFirst({ where: { subscriptionId: subscription?.id } })) || undefined;
+	// 	const user = subscription?.userId ? await db.user.findFirst({ where: { id: subscription?.userId } }) : undefined;
+	// 	if (user) session = { user: { ...user, subscription, workspace }, expires: dayjs("2050-01-01").toISOString() };
+	// }
 
 	return createInnerTRPCContext({
 		session,
@@ -131,9 +133,9 @@ const enforceUserIsAuthed = t.middleware(async ({ ctx, next }) => {
 	if (!ctx.session || !ctx.session.user) throw new TRPCError({ code: "UNAUTHORIZED" });
 
 	const { user } = ctx.session;
-	const role = user.roleId ? (await ctx.prisma.role.findFirst({ where: { id: user.roleId } })) || undefined : undefined;
+	// const role = user.roleId ? (await ctx.prisma.role.findFirst({ where: { id: user.roleId } })) || undefined : undefined;
 
-	ctx.session.user = { ...user, role };
+	ctx.session.user = { ...user };
 
 	return next({
 		ctx: {

@@ -12,7 +12,7 @@ const UserPage: NextPage = () => {
 
 	return (
 		<div>
-			<h1>{userQuery.data?.data?.name}</h1>
+			<h1>{userQuery.data?.name}</h1>
 		</div>
 	);
 };

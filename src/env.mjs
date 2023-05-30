@@ -7,7 +7,8 @@ import { z } from "zod";
 const server = z.object({
 	TZ: z.string().optional(),
 	PORT: z.string().optional().default("4000"),
-	DATABASE_URL: z.string().optional(),
+	DB_URL: z.string().optional(),
+	DB_NAME: z.string().optional(),
 	NODE_ENV: z.enum(["development", "test", "production"]).optional(),
 	// NEXTAUTH_SECRET: process.env.NODE_ENV === "production" ? z.string().min(1) : z.string().min(1).optional(),
 	NEXTAUTH_SECRET: z.string().min(1).optional(),
@@ -49,7 +50,8 @@ const client = z.object({
 const processEnv = {
 	TZ: process.env.TZ,
 	PORT: process.env.PORT,
-	DATABASE_URL: process.env.DATABASE_URL,
+	DB_URL: process.env.DB_URL,
+	DB_NAME: process.env.DB_NAME,
 	NODE_ENV: process.env.NODE_ENV,
 	NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
 	NEXTAUTH_URL: process.env.NEXTAUTH_URL,

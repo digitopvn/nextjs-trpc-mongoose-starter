@@ -1,10 +1,8 @@
-import { BookFilled, GithubOutlined, KeyOutlined, UserOutlined } from "@ant-design/icons";
+import { GithubOutlined, LoginOutlined, UserOutlined } from "@ant-design/icons";
 import { Button, Space } from "antd";
 import { type NextPage } from "next";
 import Head from "next/head";
 import { signIn, useSession } from "next-auth/react";
-
-import CopyCode from "@/commons/CopyCode";
 
 const AuthShowcase: React.FC = () => {
 	const { data: sessionData } = useSession();
@@ -17,36 +15,33 @@ const AuthShowcase: React.FC = () => {
 						Great to see you here, <strong className="text-[hsl(280,100%,70%)]">{sessionData.user?.name}!</strong>
 					</span>
 				</div>
-			) : (
-				<div className="text-md text-center text-white">
-					<span>A build server that run on your infrastructure and its Command Line Interface (CLI) with developer-friendly commands.</span>
-				</div>
-			)}
-			<div className="text-center text-2xl text-white">
-				<CopyCode mode="inline" value="npm i @topgroup/diginext --location=global" />
-			</div>
+			) : null}
 			<Space>
 				{sessionData && sessionData.user ? (
-					<Button size="large" type="primary" href="/account" icon={<UserOutlined />}>
-						Get your API key
+					<Button size="large" type="primary" href="/users" icon={<UserOutlined />}>
+						Users
 					</Button>
 				) : (
-					<Button size="large" type="primary" onClick={() => signIn(undefined, { redirect: true, callbackUrl: "/account" })} icon={<KeyOutlined />}>
-						Get your API key
+					<Button
+						size="large"
+						type="primary"
+						danger
+						// redirect after sign-in
+						// onClick={() => signIn(undefined, { redirect: true, callbackUrl: "/users" })}
+						onClick={() => signIn()}
+						icon={<LoginOutlined />}
+					>
+						Login
 					</Button>
 				)}
 
 				<Button
 					size="large"
 					type="primary"
-					icon={<BookFilled />}
-					// href="/documentation"
-					href="https://topgroup.notion.site/Getting-Started-8d4155a1797641e6aa4ead9446868533"
+					href="https://github.com/digitopvn/nextjs-trpc-mongoose-starter"
 					target="_blank"
+					icon={<GithubOutlined />}
 				>
-					Getting started
-				</Button>
-				<Button size="large" type="primary" href="https://github.com/digitopvn/diginext" target="_blank" icon={<GithubOutlined />}>
 					Github
 				</Button>
 			</Space>
@@ -61,17 +56,15 @@ const Home: NextPage = () => {
 		<>
 			<Head>
 				<title>Diginext | Home</title>
-				<meta
-					name="description"
-					content="A BUILD SERVER that run on your infrastructure and its Command Line Interface (CLI) with developer-friendly commands. "
-				/>
+				<meta name="description" content="Next.js, Mongoose and tRPC." />
 				<link rel="icon" href="/favicon.ico" />
 			</Head>
 			<main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c]">
 				<div className="container flex flex-col items-center justify-center px-4 py-16 ">
-					<h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
-						<span className="text-[hsl(280,100%,70%)]">digi</span>next
+					<h1 className="text-center text-6xl font-extrabold tracking-tight text-white">
+						<span className="text-[hsl(280,100%,70%)]">Next.js</span> + tRPC + <span className="text-rose-500">Mongoose</span>
 					</h1>
+					<div className="flex flex-col items-center gap-2 pb-5 text-purple-400">Hello, world!</div>
 					<div className="flex flex-col items-center gap-2">
 						<AuthShowcase />
 					</div>

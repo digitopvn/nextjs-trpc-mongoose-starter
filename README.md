@@ -1,27 +1,23 @@
-# Diginext Website
+# Next.js + tRPC + Mongoose Starter Template
 
-Created from [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
-
-## What's next? How do I make an app with this?
-
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
-
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+Stacks:
 
 - [Next.js](https://nextjs.org)
 - [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
+- [Mongoose](https://mongoosejs.com)
 - [Tailwind CSS](https://tailwindcss.com)
 - [tRPC](https://trpc.io)
 
-## Learn More
+## Getting started
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+```bash
+pnpm i
+pnpm dev
+```
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+Go to: [http://localhost:4000](http://localhost:4000)
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+- API Docs: [http://localhost:4000/api-docs](http://localhost:4000/api-docs)
 
 ## How do I deploy this?
 
@@ -40,3 +36,8 @@ dx deploy --prod
 ```
 
 Cheers!
+
+## Credits
+
+- Author: [Goon Nguyen](https://github.com/mrgoonie)
+- CTO of [TOP GROUP](https://wearetopgroup.com)

@@ -1,15 +1,50 @@
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import type { Role as DbRole, Subscription, User as DbUser, Workspace } from "@prisma/client";
+import { MongoDBAdapter } from "@next-auth/mongodb-adapter";
 import { makeSlug } from "diginext-utils/dist/Slug";
+import { MongoClient } from "mongodb";
 import { type GetServerSidePropsContext } from "next";
-import { type DefaultSession, type NextAuthOptions, getServerSession } from "next-auth";
+import type { DefaultSession, NextAuthOptions, User } from "next-auth";
+import { getServerSession } from "next-auth";
 import type { Provider } from "next-auth/providers";
 import DiscordProvider from "next-auth/providers/discord";
 import GoogleProvider from "next-auth/providers/google";
 
 import { env } from "@/env.mjs";
-import { prisma } from "@/server/db";
+import { db } from "@/server/db";
 import type { RoutePermisionType } from "@/utils/types";
+
+import type { IUser } from "./entities";
+
+/**
+ * NextAuth with MongoDB Adapter
+ */
+
+if (!env.DB_URL) throw new Error('Invalid/Missing environment variable: "DB_URL"');
+
+const uri = env.DB_URL;
+const options = {};
+
+// db.connect();
+
+let client: MongoClient | undefined;
+let clientPromise: Promise<MongoClient> | undefined;
+
+(globalThis as any)._mongoClientPromise = clientPromise;
+
+if (env.NODE_ENV === "development") {
+	// In development mode, use a global variable so that the value
+	// is preserved across module reloads caused by HMR (Hot Module Replacement).
+	if (!(globalThis as any)._mongoClientPromise) {
+		client = new MongoClient(uri, options);
+		(globalThis as any)._mongoClientPromise = client.connect();
+	}
+	clientPromise = (globalThis as any)._mongoClientPromise;
+} else {
+	// In production mode, it's best to not use a global variable.
+	client = new MongoClient(uri, options);
+	clientPromise = client.connect();
+}
+
+if (!clientPromise) throw new Error(`Unable to connect database.`);
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -22,16 +57,10 @@ declare module "next-auth" {
 		user: {
 			id: string;
 			// ...other properties
-			// role: Role;
+			role: Role;
 		} & DefaultSession["user"] &
-			User &
-			DbUser;
-	}
-
-	interface User {
-		role?: Role;
-		workspace?: Workspace;
-		subscription?: Subscription;
+			IUser &
+			User;
 	}
 
 	interface RoleRoute {
@@ -93,28 +122,14 @@ export const authOptions: NextAuthOptions = {
 		async session({ session, user }) {
 			console.log("[NEXT_AUTH] Session callback...");
 			if (session.user) {
-				const userInDB = await prisma.user.findFirst({ where: { email: user.email }, include: { role: true } });
+				const userInDB = await db.user.findOne({ email: user.email });
 
 				// update user's default role & username
-				let updatedUser:
-					| (DbUser & {
-							role: DbRole | null;
-					  })
-					| null;
-
-				if (!userInDB?.roleId && user.email) {
-					const memberRole = await prisma.role.findFirst({ where: { type: "member" } });
-					const roleId = memberRole?.id;
-					updatedUser = await prisma.user.update({ where: { email: user.email }, data: { roleId }, include: { role: true } });
-
-					user.role = memberRole || undefined;
-				} else {
-					updatedUser = userInDB;
-				}
+				let updatedUser: IUser | undefined;
 
 				if (!userInDB?.username && user.email && user.name) {
 					const username = makeSlug(user.name);
-					updatedUser = await prisma.user.update({ where: { email: user.email }, data: { username }, include: { role: true } });
+					updatedUser = await db.user.updateOne({ email: user.email }, { username });
 					session.user.username = username;
 				} else {
 					updatedUser = userInDB;
@@ -123,12 +138,11 @@ export const authOptions: NextAuthOptions = {
 				// return user data:
 				session.user.id = user.id;
 				session.user.username = userInDB?.username || updatedUser?.username || null;
-				session.user.role = user.role || userInDB?.role || updatedUser?.role || undefined; // <-- put other properties on the session here
 			}
 			return session;
 		},
 	},
-	adapter: PrismaAdapter(prisma),
+	adapter: MongoDBAdapter(clientPromise),
 	providers,
 };
 
