@@ -23,7 +23,7 @@ export const SiteLayout = (props: ISiteLayoutProps) => {
 	if (useSidebar) marginLeft = sidebarCollapsed ? 80 : 200;
 
 	const isAccountPage = router.asPath.startsWith("/account");
-	const isAdminPage = router.asPath.startsWith("/admin");
+	const isAdminPage = router.asPath.startsWith("/admin/dashboard");
 
 	return (
 		<Layout hasSider>

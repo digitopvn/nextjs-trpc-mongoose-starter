@@ -55,7 +55,7 @@ export const AdminMenuSider = () => {
 		>
 			{sidebarCollapsed ? (
 				<div className="mx-auto my-5 w-[32px]">
-					<Link href="/admin">
+					<Link href="/admin/dashboard">
 						<img
 							src={
 								isDarkMode ? `${router.basePath}/assets/images/diginext-icon-white.svg` : `${router.basePath}/assets/images/diginext-icon-black.svg`
@@ -66,7 +66,7 @@ export const AdminMenuSider = () => {
 				</div>
 			) : (
 				<div className="mx-auto my-5 w-36">
-					<Link href="/admin">
+					<Link href="/admin/dashboard">
 						<img
 							src={isDarkMode ? `${router.basePath}/assets/images/diginext_logo_white.svg` : `${router.basePath}/assets/images/diginext_logo.svg`}
 							alt="Diginext Logo"
