@@ -1,0 +1,17 @@
+[
+	{
+		"_id": "fae8a1c4-a452-4ca8-ba75-9d34d57e0452",
+		"colName": "Diginext",
+		"created": "2023-03-24T06:25:47.351Z",
+		"sortNum": 10000,
+		"folders": [
+			{
+				"_id": "6f9b9b57-2e93-4280-9ecc-0973017725d4",
+				"name": "Domains",
+				"containerId": "",
+				"created": "2023-03-24T06:25:55.606Z",
+				"sortNum": 10000
+			}
+		]
+	}
+]

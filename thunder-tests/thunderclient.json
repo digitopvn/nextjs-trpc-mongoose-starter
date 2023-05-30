@@ -1,0 +1,21 @@
+[
+	{
+		"_id": "b2d6d97f-5f92-4e7d-9a5d-63732abda9f8",
+		"colId": "fae8a1c4-a452-4ca8-ba75-9d34d57e0452",
+		"containerId": "6f9b9b57-2e93-4280-9ecc-0973017725d4",
+		"name": "Create",
+		"url": "{{BASE_URL}}/api/domains/create",
+		"method": "POST",
+		"sortNum": 10000,
+		"created": "2023-03-24T06:26:04.142Z",
+		"modified": "2023-03-25T07:57:36.890Z",
+		"headers": [],
+		"params": [],
+		"body": {
+			"type": "json",
+			"raw": "{\n  \"name\": \"duynguyen\",\n  \"data\": \"118.69.128.28\"\n}",
+			"form": []
+		},
+		"tests": []
+	}
+]

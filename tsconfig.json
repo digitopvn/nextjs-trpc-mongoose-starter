@@ -1,0 +1,39 @@
+{
+	"compilerOptions": {
+		"lib": ["dom", "dom.iterable", "esnext"],
+		"allowJs": true,
+		"checkJs": true,
+		"skipLibCheck": true,
+		"strict": true,
+		"forceConsistentCasingInFileNames": true,
+		"noEmit": true,
+		"target": "es2017",
+		"module": "esnext",
+		"moduleResolution": "node",
+		"esModuleInterop": true,
+		"resolveJsonModule": true,
+		"isolatedModules": true,
+		"jsx": "preserve",
+		"incremental": true,
+		"noUncheckedIndexedAccess": true,
+		"strictNullChecks": true,
+		"noImplicitAny": true,
+		"noImplicitReturns": true,
+		"noImplicitThis": true,
+		"noUnusedLocals": false,
+		"noUnusedParameters": false,
+		"allowUnreachableCode": false,
+		"noFallthroughCasesInSwitch": true,
+		"preserveSymlinks": true,
+		"declaration": true,
+		"sourceMap": true,
+		"outDir": "out",
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["./src/*"],
+			"@/public/*": ["./public/*"]
+		}
+	},
+	"include": [".eslintrc.cjs", "next-env.d.ts", "**/*.ts", "**/*.tsx", "**/*.cjs", "**/*.mjs"],
+	"exclude": ["./out/**/*", "./node_modules/**/*", "cypress/**/*.ts"]
+}

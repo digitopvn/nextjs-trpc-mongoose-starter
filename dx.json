@@ -1,0 +1,50 @@
+{
+	"name": "website",
+	"slug": "website",
+	"owner": "duy-nguyen-ngoc",
+	"workspace": "topgroup",
+	"project": "diginext",
+	"git": {
+		"provider": "github",
+		"repoURL": "https://github.com/digitopvn/diginext-site",
+		"repoSSH": "git@github.com:digitopvn/diginext-site.git"
+	},
+	"framework": {
+		"name": "None/unknown",
+		"slug": "none",
+		"repoSSH": "unknown",
+		"version": "0.1.0"
+	},
+	"environment": {
+		"dev": {
+			"shouldInherit": true,
+			"size": "none",
+			"cluster": "topgroup-k3s",
+			"provider": "custom",
+			"domains": ["diginext-website.dev.diginext.site"],
+			"registry": "google-container-registry",
+			"imageURL": "asia.gcr.io/top-group-k8s/diginext/website",
+			"namespace": "diginext-dev",
+			"port": 4000,
+			"cdn": false,
+			"replicas": 1,
+			"ssl": "letsencrypt",
+			"tlsSecret": "tls-secret-letsencrypt-diginext-website-dev-diginext-site"
+		},
+		"prod": {
+			"shouldInherit": true,
+			"size": "none",
+			"cluster": "digitop-cluster",
+			"provider": "gcloud",
+			"domains": ["diginext.vn", "www.diginext.vn", "diginext-website.prod.diginext.site"],
+			"registry": "google-container-registry",
+			"imageURL": "asia.gcr.io/top-group-k8s/diginext/website",
+			"namespace": "diginext-prod",
+			"port": 4000,
+			"cdn": false,
+			"replicas": 1,
+			"ssl": "letsencrypt",
+			"tlsSecret": ""
+		}
+	}
+}

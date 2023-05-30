@@ -1,0 +1,10 @@
+# Ignore artifacts:
+out
+coverage
+
+.next
+node_modules
+.yarn
+.out
+.turbo
+**/*.yaml
