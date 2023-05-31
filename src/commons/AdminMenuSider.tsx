@@ -1,4 +1,4 @@
-import { DashboardOutlined, SettingOutlined } from "@ant-design/icons";
+import { BookOutlined, DashboardOutlined, EnvironmentOutlined, SettingOutlined, UserAddOutlined, UserDeleteOutlined } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 import { Menu } from "antd";
 import Sider from "antd/lib/layout/Sider";
@@ -11,16 +11,46 @@ import { useLayoutProvider } from "@/providers/LayoutProvider";
 
 const items: MenuProps["items"] = [
 	{
-		key: `menu/admin/`,
+		key: `menu/admin/dashboard`,
 		icon: <DashboardOutlined />,
-		label: "Dashboard",
+		label: "Thống kê",
 	},
 	{
-		key: `menu/admin/settings`,
-		icon: <SettingOutlined />,
-		label: "Settings",
-		disabled: true,
+		key: `menu/admin/customers`,
+		icon: <UserDeleteOutlined />,
+		label: "Khách hàng",
 	},
+	{
+		key: `menu/admin/pages`,
+		icon: <BookOutlined />,
+		label: "Trang",
+	},
+	{
+		key: `menu/admin/pages`,
+		icon: <EnvironmentOutlined />,
+		label: "Zone",
+	},
+	{
+		key: `menu/admin/pages`,
+		icon: <UserAddOutlined />,
+		label: "Người đăng kí",
+	},
+	{
+		key: `menu/admin/pages`,
+		icon: <SettingOutlined />,
+		label: "Quản trị",
+	},
+	{
+		key: `menu/admin/pages`,
+		icon: <DashboardOutlined />,
+		label: "Hoạt động",
+	},
+	// {
+	// 	key: `menu/admin/settings`,
+	// 	icon: <SettingOutlined />,
+	// 	label: "Settings",
+	// 	disabled: true,
+	// },
 ];
 
 export const AdminMenuSider = () => {
@@ -55,7 +85,7 @@ export const AdminMenuSider = () => {
 		>
 			{sidebarCollapsed ? (
 				<div className="mx-auto my-5 w-[32px]">
-					<Link href="/admin">
+					<Link href="/admin/dashboard">
 						<img
 							src={
 								isDarkMode ? `${router.basePath}/assets/images/diginext-icon-white.svg` : `${router.basePath}/assets/images/diginext-icon-black.svg`
@@ -66,7 +96,7 @@ export const AdminMenuSider = () => {
 				</div>
 			) : (
 				<div className="mx-auto my-5 w-36">
-					<Link href="/admin">
+					<Link href="/admin/dashboard">
 						<img
 							src={isDarkMode ? `${router.basePath}/assets/images/diginext_logo_white.svg` : `${router.basePath}/assets/images/diginext_logo.svg`}
 							alt="Diginext Logo"

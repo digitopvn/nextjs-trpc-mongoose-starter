@@ -3,8 +3,8 @@ import mongoose from "mongoose";
 
 import { env } from "@/env.mjs";
 
-import type { IUser, UserCreateDto } from "./entities";
-import { userSchema } from "./entities";
+import type { ICustomer, IPage, IUser, UserCreateDto } from "./entities";
+import { CustomerSchema, PageSchema, userSchema } from "./entities";
 import type { IPost, PostCreateDto } from "./entities/Post";
 import { postSchema } from "./entities/Post";
 import QueryService from "./services/query-service";
@@ -13,6 +13,8 @@ export interface QueryDatabase {
 	isConnected: boolean;
 	connect: (onConnected?: ((db?: typeof mongoose) => void) | undefined) => Promise<void>;
 	disconnect: () => Promise<void>;
+	page: QueryService<IPage>;
+	customer: QueryService<ICustomer>;
 	user: QueryService<IUser, UserCreateDto>;
 	post: QueryService<IPost, PostCreateDto>;
 }
@@ -29,6 +31,8 @@ export const db = globalForPrisma.db || {
 	disconnect,
 	// db query services
 	user: new QueryService(userSchema),
+	page: new QueryService(PageSchema),
+	customer: new QueryService(CustomerSchema),
 	post: new QueryService(postSchema),
 };
 
