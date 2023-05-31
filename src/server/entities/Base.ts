@@ -3,7 +3,8 @@ import { Schema } from "mongoose";
 import type { IUser } from "./User";
 
 export interface IBase {
-	_id: string;
+	id: string;
+	name?: string;
 	/**
 	 * Slug of an item, generated automatically by its "name"
 	 */
@@ -26,7 +27,7 @@ export const baseSchemaDefinitions = {
 	slug: { type: String },
 	active: { type: Boolean, default: true },
 	metadata: { type: Object },
-	owner: {
+	ownerId: {
 		type: Schema.Types.ObjectId,
 		ref: "users",
 	},

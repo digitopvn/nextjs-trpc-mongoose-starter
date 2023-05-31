@@ -9,8 +9,8 @@ const UserListPage: NextPage = () => {
 	return (
 		<div>
 			{users.map((user) => (
-				<h3 key={user._id}>
-					[{user._id}] {user.name}
+				<h3 key={user.id}>
+					[{user.id}] {user.name}
 				</h3>
 			))}
 		</div>

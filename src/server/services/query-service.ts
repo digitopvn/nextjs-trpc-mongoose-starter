@@ -8,10 +8,10 @@ import { model } from "mongoose";
 
 import type { IQueryFilter, IQueryOptions, IQueryPagination } from "@/interfaces/IQuery";
 import { isValidObjectId, MongoDB } from "@/plugins/mongodb";
-import { parseRequestFilter } from "@/plugins/parse-request-filter";
 import { replaceObjectIdsToStrings } from "@/plugins/traverse";
 
 import type { IUser } from "../entities";
+import type { IBase } from "../entities/Base";
 
 /**
  * ![DANGEROUS]
@@ -33,60 +33,62 @@ async function generateUniqueSlug(scope: QueryService, input: string, attempt = 
 	return slug;
 }
 
-export default class QueryService<T = any> {
+export default class QueryService<T = any, C = any> {
 	Model: Model<T>;
+
+	collection: string | undefined;
 
 	user: IUser | undefined;
 
 	constructor(schema: Schema) {
 		const collection = schema.get("collection");
 		if (!collection) throw new Error(`Missing collection name in schema.`);
+		this.collection = collection;
 		this.Model = model<T>(collection, schema, collection);
 	}
 
 	async count(filter?: IQueryFilter) {
 		const parsedFilter = filter || {};
 		parsedFilter.$or = [{ deletedAt: null }, { deletedAt: { $exists: false } }];
-		// console.log(`BaseService > COUNT "${this.model.collection.name}" collection > parsedFilter :>>`, parsedFilter);
 		return this.Model.countDocuments(parsedFilter).exec();
 	}
 
-	async create(data: any) {
+	async create(data: C) {
+		let input = { ...data } as IBase;
 		try {
 			// generate slug (if needed)
 			const scope = this;
 
-			if (data.slug) {
-				const count = await scope.count({ slug: data.slug });
-				if (count > 0) data.slug = await generateUniqueSlug(scope, data.slug, 1);
+			if (input.slug) {
+				const count = await scope.count({ slug: input.slug });
+				if (count > 0) input.slug = await generateUniqueSlug(scope, input.slug, 1);
 			} else {
-				data.slug = await generateUniqueSlug(scope, data.name || "item", 1);
+				input.slug = await generateUniqueSlug(scope, input.name || "item", 1);
 			}
 
 			// generate metadata (for searching)
-			data.metadata = {};
-			for (const [key, value] of Object.entries(data)) {
-				if (key !== "_id" && key !== "metadata" && key !== "slug" && !isValidObjectId(value) && value)
-					data.metadata[key] = clearUnicodeCharacters(value.toString());
+			input.metadata = {};
+			for (const [key, value] of Object.entries(input)) {
+				if (key !== "id" && key !== "metadata" && key !== "slug" && !isValidObjectId(value) && value)
+					input.metadata[key] = clearUnicodeCharacters(value.toString());
 			}
 
 			// assign item authority:
-			if (this.user) {
-				const { user } = this;
-				const userId = user?._id;
-				data.owner = userId;
-			}
+			if (this.user) input.ownerId = this.user?.id;
 
 			// convert all valid "ObjectId" string to ObjectId()
-			data = cloneDeepWith(data, (val) => (isValidObjectId(val) ? MongoDB.toObjectId(val) : undefined));
+			input = cloneDeepWith(input, (val) => (isValidObjectId(val) ? MongoDB.toObjectId(val) : undefined));
 
 			// set created/updated date:
 			const date = new Date();
-			data.createdAt = date;
-			data.updatedAt = date;
+			input.createdAt = date;
+			input.updatedAt = date;
 
-			const createdDoc = new this.Model(data);
+			const createdDoc = new this.Model(input);
 			const newItem = await createdDoc.save();
+
+			// transform "_id" to "id"
+			newItem.id = newItem._id;
 
 			// convert all {ObjectId} to {string}:
 			return replaceObjectIdsToStrings(newItem) as T;
@@ -100,61 +102,61 @@ export default class QueryService<T = any> {
 		// console.log(`BaseService > find in "${this.model.collection.name}" collection :>> filter:`, filter);
 
 		// where
-		const _filter = parseRequestFilter(filter);
-
 		const where = {
-			..._filter,
+			...filter,
 			$or: [{ deletedAt: null }, { deletedAt: { $exists: false } }],
 		};
-		// console.log(`BaseService > collection "${this.model.collection.name}" > find > where :>>`, where);
+		// console.log(`"${this.collection}" > find > where :>>`, where);
 
-		const pipelines: PipelineStage[] = [
-			{
-				$match: where,
-			},
-		];
+		// first stage: WHERE
+		const pipelines: PipelineStage[] = [{ $match: where }];
 
 		// populate
 		if (options?.populate && options?.populate.length > 0) {
-			options?.populate.forEach((collection) => {
+			options?.populate.forEach((populatedField) => {
 				const collectionPaths = this.Model?.schema?.paths;
-				const lookupCollection = collectionPaths[collection]?.options.ref;
-				const isPopulatedFieldArray = Array.isArray(collectionPaths[collection]?.options.type);
+				const lookupCollection = collectionPaths[populatedField]?.options?.ref;
+				const isPopulatedFieldArray = Array.isArray(collectionPaths[populatedField]?.options?.type);
 
-				// use $lookup to find relation field
-				pipelines.push({
-					$lookup: {
-						from: lookupCollection,
-						localField: collection,
-						foreignField: "_id",
-						as: collection,
-					},
-				});
+				// remove "Id" at the end of populated field (eg. "ownerId" -> "owner")
+				const assignToField = populatedField.substring(0, populatedField.length - 2);
 
-				// if there are many results, return an array, if there are only 1 result, return an object
-				pipelines.push({
-					$addFields: {
-						[collection]: {
-							$cond: isPopulatedFieldArray
-								? [{ $isArray: `$${collection}` }, `$${collection}`, { $ifNull: [`$${collection}`, null] }]
-								: {
-										if: {
-											$and: [{ $isArray: `$${collection}` }, { $eq: [{ $size: `$${collection}` }, 1] }],
-										},
-										then: { $arrayElemAt: [`$${collection}`, 0] },
-										else: {
-											$cond: {
-												if: {
-													$and: [{ $isArray: `$${collection}` }, { $ne: [{ $size: `$${collection}` }, 1] }],
-												},
-												then: `$${collection}`,
-												else: null,
-											},
-										},
-								  },
+				if (lookupCollection && assignToField) {
+					// use $lookup to find relation field
+					pipelines.push({
+						$lookup: {
+							from: lookupCollection,
+							localField: populatedField,
+							foreignField: "_id",
+							as: assignToField,
 						},
-					},
-				});
+					});
+
+					// if there are many results, return an array, if there are only 1 result, return an object
+					pipelines.push({
+						$addFields: {
+							[assignToField]: {
+								$cond: isPopulatedFieldArray
+									? [{ $isArray: `$${assignToField}` }, `$${assignToField}`, { $ifNull: [`$${assignToField}`, null] }]
+									: {
+											if: {
+												$and: [{ $isArray: `$${assignToField}` }, { $eq: [{ $size: `$${assignToField}` }, 1] }],
+											},
+											then: { $arrayElemAt: [`$${assignToField}`, 0] },
+											else: {
+												$cond: {
+													if: {
+														$and: [{ $isArray: `$${assignToField}` }, { $ne: [{ $size: `$${assignToField}` }, 1] }],
+													},
+													then: `$${assignToField}`,
+													else: null,
+												},
+											},
+									  },
+							},
+						},
+					});
+				}
 			});
 		}
 
@@ -177,7 +179,6 @@ export default class QueryService<T = any> {
 		if (options?.limit) pipelines.push({ $limit: options.limit });
 
 		const [results, totalItems] = await Promise.all([this.Model.aggregate(pipelines).exec(), this.Model.countDocuments(where).exec()]);
-		// console.log(`"${this.model.collection.name}" > results >>`, results);
 
 		if (pagination) {
 			pagination.total_items = totalItems || results.length;
@@ -203,6 +204,12 @@ export default class QueryService<T = any> {
 		}
 
 		// convert all {ObjectId} to {string}:
+		results.map((item) => {
+			item.id = item._id;
+			delete item._id;
+			return item;
+		});
+
 		return replaceObjectIdsToStrings(results) as T[];
 	}
 

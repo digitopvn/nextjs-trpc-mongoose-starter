@@ -120,7 +120,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET)
 export const authOptions: NextAuthOptions = {
 	callbacks: {
 		async session({ session, user }) {
-			console.log("[NEXT_AUTH] Session callback...");
+			// console.log("[NEXT_AUTH] Session callback...");
 			if (session.user) {
 				const userInDB = await db.user.findOne({ email: user.email });
 
