@@ -24,6 +24,7 @@ export const SiteLayout = (props: ISiteLayoutProps) => {
 
 	const isAccountPage = router.asPath.startsWith("/account");
 	const isAdminPage = router.asPath.startsWith("/admin/dashboard");
+	const isCustomerPage = router.asPath.startsWith("/admin/customers");
 
 	return (
 		<Layout hasSider>
@@ -33,6 +34,7 @@ export const SiteLayout = (props: ISiteLayoutProps) => {
 			{/* Sidebar here */}
 			{useSidebar && isAccountPage && <MenuSider />}
 			{useSidebar && isAdminPage && <AdminMenuSider />}
+			{useSidebar && isCustomerPage && <AdminMenuSider />}
 
 			<Layout className="min-h-screen transition-all" style={{ marginLeft }}>
 				{/* Site Header */}

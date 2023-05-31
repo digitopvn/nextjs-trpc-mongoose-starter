@@ -3,8 +3,8 @@ import mongoose from "mongoose";
 
 import { env } from "@/env.mjs";
 
-import type { IUser } from "./entities";
-import { userSchema } from "./entities";
+import type { ICustomer, IPage, IUser } from "./entities";
+import { CustomerSchema, PageSchema, userSchema } from "./entities";
 import QueryService from "./services/QueryService";
 
 export interface QueryDatabase {
@@ -12,6 +12,8 @@ export interface QueryDatabase {
 	connect: (onConnected?: ((db?: typeof mongoose) => void) | undefined) => Promise<void>;
 	disconnect: () => Promise<void>;
 	user: QueryService<IUser>;
+	page: QueryService<IPage>;
+	customer: QueryService<ICustomer>;
 }
 
 //
@@ -26,6 +28,8 @@ export const db = globalForPrisma.db || {
 	disconnect,
 	// db query services
 	user: new QueryService(userSchema),
+	page: new QueryService(PageSchema),
+	customer: new QueryService(CustomerSchema),
 };
 
 //

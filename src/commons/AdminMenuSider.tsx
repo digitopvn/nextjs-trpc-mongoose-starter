@@ -1,4 +1,4 @@
-import { DashboardOutlined, SettingOutlined } from "@ant-design/icons";
+import { DashboardOutlined } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 import { Menu } from "antd";
 import Sider from "antd/lib/layout/Sider";
@@ -11,16 +11,46 @@ import { useLayoutProvider } from "@/providers/LayoutProvider";
 
 const items: MenuProps["items"] = [
 	{
-		key: `menu/admin/`,
+		key: `menu/admin/dashboard`,
 		icon: <DashboardOutlined />,
-		label: "Dashboard",
+		label: "Thống kê",
 	},
 	{
-		key: `menu/admin/settings`,
-		icon: <SettingOutlined />,
-		label: "Settings",
-		disabled: true,
+		key: `menu/admin/customers`,
+		icon: <DashboardOutlined />,
+		label: "Khách hàng",
 	},
+	{
+		key: `menu/admin/pages`,
+		icon: <DashboardOutlined />,
+		label: "Trang",
+	},
+	{
+		key: `menu/admin/pages`,
+		icon: <DashboardOutlined />,
+		label: "Zone",
+	},
+	{
+		key: `menu/admin/pages`,
+		icon: <DashboardOutlined />,
+		label: "Người đăng kí",
+	},
+	{
+		key: `menu/admin/pages`,
+		icon: <DashboardOutlined />,
+		label: "Quản trị",
+	},
+	{
+		key: `menu/admin/pages`,
+		icon: <DashboardOutlined />,
+		label: "Hoạt động",
+	},
+	// {
+	// 	key: `menu/admin/settings`,
+	// 	icon: <SettingOutlined />,
+	// 	label: "Settings",
+	// 	disabled: true,
+	// },
 ];
 
 export const AdminMenuSider = () => {
