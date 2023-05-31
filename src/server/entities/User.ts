@@ -18,7 +18,8 @@ export interface AccessTokenInfo {
 	expiredDateGTM7: string;
 }
 
-export type UserDto = Omit<IUser, keyof HiddenBodyKeys>;
+export type UserCreateDto = Omit<IUser, keyof HiddenBodyKeys>;
+export type UserUpdateDto = Partial<UserCreateDto>;
 
 // export type IUser = typeof User;
 

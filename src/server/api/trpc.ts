@@ -38,6 +38,9 @@ type CreateContextOptions = {
 	res: NextApiResponse;
 };
 
+// Connect to database
+db.connect();
+
 /**
  * This helper generates the "internals" for a tRPC context. If you need to use it, you can export
  * it from here.

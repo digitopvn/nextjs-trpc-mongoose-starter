@@ -1,3 +1,4 @@
+import { makeSlug } from "diginext-utils/dist/Slug";
 import { z } from "zod";
 
 import { respondSuccess } from "@/interfaces/ResponseData";
@@ -14,10 +15,14 @@ const userRouter = createTRPCRouter({
 			})
 		)
 		.mutation(async ({ ctx, input }) => {
-			const isEmailExisted = await ctx.query.user.count({ where: { email: input.email } });
-			if (isEmailExisted) return { error: `Email is existed.` };
+			const isEmailExisted = await ctx.query.user.count({ email: input.email });
+			if (isEmailExisted > 0) return { error: `Email is existed.` };
 
-			const data = await ctx.query.user.create({ data: { ...input } });
+			const username = input.username || makeSlug(input.name, { delimiter: "" });
+			const isUsernameExisted = await ctx.query.user.count({ username });
+			if (isUsernameExisted > 0) return { error: `Username is existed.` };
+
+			const data = await ctx.query.user.create({ ...input, username });
 			return data;
 		}),
 	list: publicProcedure
@@ -46,7 +51,15 @@ const userRouter = createTRPCRouter({
 				// protect: true,
 			},
 		})
-		.input(z.object({}).optional())
+		.input(
+			z
+				.object({
+					id: z.string().optional(),
+					username: z.string().optional(),
+					search: z.enum(["true", "false"]).optional(),
+				})
+				.optional()
+		)
 		.output(
 			z.object({
 				status: z.number(),
@@ -55,6 +68,7 @@ const userRouter = createTRPCRouter({
 			})
 		)
 		.query(async ({ ctx, input }) => {
+			console.log("input :>> ", input);
 			const data = await ctx.query.user.find(input);
 			return respondSuccess({ data });
 		}),

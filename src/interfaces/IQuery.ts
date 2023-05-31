@@ -32,7 +32,7 @@ export interface IPatchQueryParams extends IPostQueryParams {
 	/**
 	 * Find one item by `{ObjectID}`
 	 */
-	_id?: string;
+	id?: string;
 
 	/**
 	 * Find one item by slug
@@ -56,7 +56,6 @@ export interface IGetQueryParams extends IPostQueryParams, IPaginationQueryParam
 	 * Find one item by `{ObjectID}`
 	 */
 	id?: string;
-	_id?: string;
 	/**
 	 * Mark this request as search (return the similar results based on the filter query params)
 	 * @default true
@@ -70,9 +69,9 @@ export interface IGetQueryParams extends IPostQueryParams, IPaginationQueryParam
 }
 
 export interface IQueryOptions extends IQueryGeneral {
-	_id?: any;
+	id?: any;
 	/**
-	 * @example { populate: ["owner", "workspace"] }
+	 * @example { populate: ["ownerId", "postId"] }
 	 */
 	populate?: string[];
 	/**
