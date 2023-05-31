@@ -12,6 +12,7 @@ import { replaceObjectIdsToStrings } from "@/plugins/traverse";
 
 import type { IUser } from "../entities";
 import type { IBase } from "../entities/Base";
+import type { IOwner } from "../entities/IOwner";
 
 /**
  * ![DANGEROUS]
@@ -38,7 +39,7 @@ export default class QueryService<T = any, C = any> {
 
 	collection: string | undefined;
 
-	user: IUser | undefined;
+	user: Partial<IUser> | undefined;
 
 	constructor(schema: Schema) {
 		const collection = schema.get("collection");
@@ -54,7 +55,7 @@ export default class QueryService<T = any, C = any> {
 	}
 
 	async create(data: C) {
-		let input = { ...data } as IBase;
+		let input = { ...data } as IBase & IOwner;
 		try {
 			// generate slug (if needed)
 			const scope = this;
@@ -207,6 +208,7 @@ export default class QueryService<T = any, C = any> {
 		results.map((item) => {
 			item.id = item._id;
 			delete item._id;
+			if (typeof item.__v !== "undefined") delete item.__v;
 			return item;
 		});
 

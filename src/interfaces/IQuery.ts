@@ -1,8 +1,9 @@
 import type { FilterQuery } from "mongoose";
+import type { TypeOf } from "zod";
+import { z } from "zod";
 
-export interface IQueryGeneral {
-	[key: string]: any;
-}
+export const zQueryGeneral = z.record(z.string(), z.any());
+export type IQueryGeneral = TypeOf<typeof zQueryGeneral>;
 
 export interface IPaginationQueryParams {
 	page?: number;
@@ -68,40 +69,6 @@ export interface IGetQueryParams extends IPostQueryParams, IPaginationQueryParam
 	download?: boolean;
 }
 
-export interface IQueryOptions extends IQueryGeneral {
-	id?: any;
-	/**
-	 * @example { populate: ["ownerId", "postId"] }
-	 */
-	populate?: string[];
-	/**
-	 * @example { select: ["_id", "name", "slug"] }
-	 */
-	select?: string[];
-	/**
-	 * @example { order: { createdAt: -1 } }
-	 */
-	order?: { [key: string]: 1 | -1 };
-	/**
-	 * @default false
-	 */
-	search?: boolean;
-	/**
-	 * @default false
-	 */
-	download?: boolean;
-	/**
-	 * Disable the default `{$set: body}` of "update" query & update `{body}` directly to the items
-	 * @default false
-	 */
-	raw?: boolean;
-	/**
-	 * Should check for item's status
-	 * @default false
-	 */
-	status?: boolean;
-}
-
 export interface IQueryPagination extends IQueryGeneral {
 	limit?: number;
 	page?: number;
@@ -116,6 +83,44 @@ export interface IQueryPagination extends IQueryGeneral {
 	prev_page?: string;
 }
 
+export const zQueryOptions = z.object({
+	id: z.string().optional(),
+	populate: z
+		.string()
+		// eslint-disable-next-line no-nested-ternary
+		.transform((_populate) => (_populate === "" ? [] : _populate.indexOf(",") > -1 ? _populate.split(",") : [_populate]))
+		.optional(),
+	select: z
+		.string()
+		// eslint-disable-next-line no-nested-ternary
+		.transform((_select) => (_select === "" ? [] : _select.indexOf(",") > -1 ? _select.split(",") : [_select]))
+		.optional(),
+	order: z
+		.string()
+		.transform((_order) => {
+			let _sortOptions: string[] | undefined;
+			if (_order) _sortOptions = _order.indexOf(",") > -1 ? _order.split(",") : [_order];
+			const sortOptions: { [key: string]: 1 | -1 } = {};
+			if (_sortOptions)
+				_sortOptions.forEach((s) => {
+					const isDesc = s.charAt(0) === "-";
+					const key = isDesc ? s.substring(1) : s;
+					const sortValue: 1 | -1 = isDesc ? -1 : 1;
+					sortOptions[key] = sortValue;
+				});
+			return sortOptions;
+		})
+		.optional(),
+	search: z.enum(["true", "false"]).optional(),
+	download: z.enum(["true", "false"]).optional(),
+	raw: z
+		.enum(["true", "false"])
+		.transform((val) => val === "true")
+		.optional(),
+});
+
+export type IQueryOptions = TypeOf<typeof zQueryOptions> & IQueryPagination;
+
 export interface IQueryFilter extends FilterQuery<any> {
 	[key: string]: any;
 }
@@ -129,13 +134,11 @@ export interface IResponsePagination {
 	next_url?: string;
 }
 
-export interface HiddenBodyKeys {
-	id?: unknown;
-	_id?: unknown;
-	metadata?: unknown;
-	owner?: unknown;
-	workspace?: unknown;
-	createdAt?: unknown;
-	deletedAt?: unknown;
-	updatedAt?: unknown;
-}
+export const MaskedFields: { id: true; _id: true; metadata: true; createdAt: true; deletedAt: true; updatedAt: true } = {
+	id: true,
+	_id: true,
+	metadata: true,
+	createdAt: true,
+	deletedAt: true,
+	updatedAt: true,
+};

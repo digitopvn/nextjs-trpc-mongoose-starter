@@ -7,12 +7,13 @@ import { getServerSession } from "next-auth";
 import type { Provider } from "next-auth/providers";
 import DiscordProvider from "next-auth/providers/discord";
 import GoogleProvider from "next-auth/providers/google";
+import type { TypeOf } from "zod";
 
 import { env } from "@/env.mjs";
 import { db } from "@/server/db";
 import type { RoutePermisionType } from "@/utils/types";
 
-import type { IUser } from "./entities";
+import type { IUser, zUserQuery } from "./entities";
 
 /**
  * NextAuth with MongoDB Adapter
@@ -59,8 +60,8 @@ declare module "next-auth" {
 			// ...other properties
 			role: Role;
 		} & DefaultSession["user"] &
-			IUser &
-			User;
+			User &
+			TypeOf<typeof zUserQuery>;
 	}
 
 	interface RoleRoute {
@@ -137,7 +138,7 @@ export const authOptions: NextAuthOptions = {
 
 				// return user data:
 				session.user.id = user.id;
-				session.user.username = userInDB?.username || updatedUser?.username || null;
+				session.user.username = userInDB?.username || updatedUser?.username;
 			}
 			return session;
 		},

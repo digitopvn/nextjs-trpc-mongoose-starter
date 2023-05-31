@@ -1,60 +1,44 @@
 import { Schema } from "mongoose";
+import type { TypeOf } from "zod";
+import { z } from "zod";
 
-import type { HiddenBodyKeys } from "@/interfaces";
+import { MaskedFields, zQueryOptions } from "@/interfaces";
 
-import type { IBase } from "./Base";
-import { baseSchemaDefinitions } from "./Base";
-
-export interface ProviderInfo {
-	name: string;
-	user_id?: string;
-	access_token?: string;
-}
-
-export interface AccessTokenInfo {
-	access_token: string;
-	expiredTimestamp: number;
-	expiredDate: Date;
-	expiredDateGTM7: string;
-}
-
-export type UserCreateDto = Omit<IUser, keyof HiddenBodyKeys>;
-export type UserUpdateDto = Partial<UserCreateDto>;
+import { baseSchemaDefinitions, zBase } from "./Base";
 
 // export type IUser = typeof User;
 
-export interface IUser extends IBase {
-	name: string;
-	/**
-	 * Unique username of a user
-	 * This equavilent with "slug"
-	 */
-	username: string | null;
-	/**
-	 * User email address
-	 */
-	email: string;
-	/**
-	 * Is this user's email or phone verified?
-	 */
-	verified?: boolean;
-	/**
-	 * User profile picture URL
-	 */
-	image?: string;
-	/**
-	 * List of Cloud Providers which this user can access to
-	 */
-	providers?: ProviderInfo[];
-	/**
-	 * User password (hashed)
-	 */
-	password?: string;
-	/**
-	 * User token
-	 */
-	token?: AccessTokenInfo;
-}
+export const zProviderInfo = z.object({ name: z.string(), user_id: z.string().optional(), access_token: z.string().optional() });
+export const zAccessTokenInfo = z.object({
+	access_token: z.string(),
+	expiredTimestamp: z.number(),
+	expiredDate: z.date(),
+	expiredDateGTM7: z.string(),
+});
+export const zUser = zBase.extend({
+	name: z.string(),
+	username: z.string(),
+	email: z.string(),
+	verified: z.boolean().optional(),
+	image: z.string().optional(),
+	providers: z.array(zProviderInfo),
+	password: z.string().optional(),
+	token: zAccessTokenInfo,
+});
+
+export const zUserQuery = zUser
+	.partial()
+	.omit({ ...MaskedFields, providers: true, token: true, password: true })
+	.merge(zQueryOptions)
+	.default({});
+export const zUserUpdate = zUser.partial().omit({ id: true, _id: true });
+export const zUserCreate = zUser.omit(MaskedFields);
+
+export type ProviderInfo = TypeOf<typeof zProviderInfo>;
+export type AccessTokenInfo = TypeOf<typeof zAccessTokenInfo>;
+export type IUser = TypeOf<typeof zUser>;
+export type UserCreateDto = TypeOf<typeof zUserCreate>;
+export type UserUpdateDto = Partial<UserCreateDto>;
 
 export const userSchema = new Schema<IUser>(
 	{
@@ -86,10 +70,6 @@ export const userSchema = new Schema<IUser>(
 		},
 		token: {
 			type: Object,
-		},
-		ownerId: {
-			type: Schema.Types.ObjectId,
-			ref: "users",
 		},
 	},
 	{

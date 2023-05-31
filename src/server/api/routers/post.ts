@@ -1,24 +1,17 @@
 import { z } from "zod";
 
-import { respondSuccess } from "@/interfaces/ResponseData";
+import { respondSuccess, zResponse } from "@/interfaces/ResponseData";
 import { parseRequestFilter } from "@/plugins/parse-request-filter";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "@/server/api/trpc";
+import { zPost, zPostCreate, zPostQuery } from "@/server/entities";
 
 const postRouter = createTRPCRouter({
-	create: protectedProcedure
-		.input(
-			z.object({
-				name: z.string(),
-				title: z.string(),
-				content: z.string(),
-			})
-		)
-		.mutation(async ({ ctx, input }) => {
-			ctx.query.post.user = ctx.session.user;
+	create: protectedProcedure.input(zPostCreate).mutation(async ({ ctx, input }) => {
+		ctx.query.post.user = ctx.session.user;
 
-			const data = await ctx.query.post.create({ ...input });
-			return data;
-		}),
+		const data = await ctx.query.post.create({ ...input });
+		return data;
+	}),
 	createApi: protectedProcedure
 		.meta({
 			openapi: {
@@ -29,38 +22,17 @@ const postRouter = createTRPCRouter({
 				protect: true,
 			},
 		})
-		.input(
-			z.object({
-				name: z.string(),
-				title: z.string(),
-				content: z.string(),
-			})
-		)
-		.output(
-			z.object({
-				status: z.number(),
-				data: z.any().optional(),
-				messages: z.array(z.string()).optional(),
-			})
-		)
+		.input(zPostCreate)
+		.output(zResponse(zPost.nullable()))
 		.mutation(async ({ ctx, input }) => {
 			ctx.query.post.user = ctx.session.user;
-
 			const data = await ctx.query.post.create({ ...input });
 			return respondSuccess({ data });
 		}),
-	list: publicProcedure
-		.input(
-			z
-				.object({
-					_id: z.string().optional(),
-				})
-				.optional()
-		)
-		.query(async ({ ctx, input }) => {
-			const data = await ctx.query.post.find(input);
-			return data;
-		}),
+	list: publicProcedure.input(zPostQuery).query(async ({ ctx, input }) => {
+		const data = await ctx.query.post.find(input);
+		return data;
+	}),
 	listApi: publicProcedure
 		.meta({
 			openapi: {
@@ -71,29 +43,18 @@ const postRouter = createTRPCRouter({
 				// protect: true,
 			},
 		})
-		.input(
-			z
-				.object({
-					populate: z.string().optional(),
-					search: z.enum(["true", "false"]).optional(),
-				})
-				.optional()
-		)
-		.output(
-			z.object({
-				status: z.number(),
-				data: z.any().optional(),
-				messages: z.array(z.string()).optional(),
-			})
-		)
+		.input(zPostQuery)
+		.output(zResponse(z.array(z.any())))
 		.query(async ({ ctx, input }) => {
 			const { filter, options } = parseRequestFilter(input);
 
 			const data = await ctx.query.post.find(filter, options);
+			console.log("data :>> ", data);
+
 			return respondSuccess({ data });
 		}),
 	getById: publicProcedure.input(z.string()).query(async ({ ctx, input }) => {
-		const data = await ctx.query.post.findOne({ _id: input });
+		const data = await ctx.query.post.findOne({ id: input });
 		return data;
 	}),
 });
