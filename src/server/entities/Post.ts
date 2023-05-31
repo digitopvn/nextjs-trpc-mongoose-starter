@@ -1,29 +1,39 @@
 import { Schema } from "mongoose";
+import type { TypeOf } from "zod";
+import { z } from "zod";
 
-import type { HiddenBodyKeys } from "@/interfaces";
+import { MaskedFields, zQueryOptions } from "@/interfaces";
 
-import type { IBase } from "./Base";
-import { baseSchemaDefinitions } from "./Base";
+import { baseSchemaDefinitions, zBase } from "./Base";
+import { ownershipSchemaDefinitions, zOwner } from "./IOwner";
 
-export interface IPost extends IBase {
-	name: string;
-	title: string;
-	content: string;
-}
+export const zPost = z
+	.object({
+		title: z.string(),
+		content: z.string(),
+	})
+	.merge(zBase)
+	.merge(zOwner);
 
-export type PostCreateDto = Omit<IPost, keyof HiddenBodyKeys>;
-export type PostUpdateDto = Partial<PostCreateDto>;
+export const zPostQuery = zPost
+	.partial()
+	.omit({ ...MaskedFields, owner: true })
+	.merge(zQueryOptions)
+	.default({});
+export const zPostUpdate = zPost.partial().omit({ id: true, _id: true });
+export const zPostCreate = zPost.omit(MaskedFields);
+
+export type IPost = TypeOf<typeof zPost>;
+export type PostCreateDto = TypeOf<typeof zPostCreate>;
+export type PostUpdateDto = TypeOf<typeof zPostUpdate>;
 
 export const postSchema = new Schema<IPost>(
 	{
 		...baseSchemaDefinitions,
+		...ownershipSchemaDefinitions,
 		name: { type: String, maxlength: 250 },
 		title: String,
 		content: String,
-		ownerId: {
-			type: Schema.Types.ObjectId,
-			ref: "users",
-		},
 	},
 	{
 		collection: "posts",
